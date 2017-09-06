@@ -269,8 +269,7 @@ class Schema(object):
                             except SchemaError:
                                 continue
                             raise SchemaForbiddenKeyError(
-                                    'Forbidden key encountered: %r in %r' %
-                                    (nkey, data), e)
+                                'Forbidden key encountered: %r in %r' % (nkey, data), e)
                         else:
                             try:
                                 nvalue = Schema(svalue, error=e,
