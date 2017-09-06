@@ -7,6 +7,7 @@ Yet another configuration object!
 # Imports #####################################################################
 from __future__ import print_function
 import os
+import sys
 import copy
 import collections
 from ruamel.yaml import YAML
@@ -19,6 +20,7 @@ from .schema import Schema, SchemaError
 __author__ = 'Timothy McFadden'
 __creationDate__ = '06-SEPT-2017'
 __license__ = 'MIT'
+__version__ = '0.2.0'
 
 
 # This header will be written to the user config file during
@@ -29,20 +31,38 @@ USER_CONFIG_HEADER = (
 )
 
 
+(IS_WIN, IS_LIN, IS_MAC) = (
+    'win' in sys.platform,
+    'lin' in sys.platform,
+    'darwin' in sys.platform)
+
+
 # The configuration class
 class Configuration(collections.MutableMapping):
     '''YAML-based configuration settings'''
     def __init__(
-        self, default_config_file, user_config_files=None, valid_schema=None,
-        ignore_extra_keys=False
+        self, default_config_file=None, default_yaml_text=None,
+        user_config_files=None, valid_schema=None, ignore_extra_keys=False,
+        use_os_keys=False
     ):
         self.default_file = default_config_file
         self.user_files = user_config_files or []
+
+        if not (default_config_file or default_yaml_text):
+            raise ValueError("Must use either `default_config_file` or `default_yaml_text`")
+
+        if default_config_file:
+            with open(default_config_file) as fh:
+                self._default_raw = fh.read()
+        else:
+            self._default_raw = default_yaml_text
+
         if valid_schema:
             self.schema = Schema(valid_schema, ignore_extra_keys=ignore_extra_keys)
         else:
             self.schema = None
 
+        self.use_os_keys = use_os_keys
         self.extra_data = {}  # Settings not sure in a config file
 
         self.load_configs()
@@ -51,10 +71,8 @@ class Configuration(collections.MutableMapping):
         pass
 
     def __getitem__(self, key):
-        if key in self.extra_data:
-            return self.extra_data[key]
-
-        return self._calculated[key]
+        value = self.extra_data[key] if (key in self.extra_data) else self._calculated[key]
+        return self._decode_os_value(value)
 
     def __iter__(self):
         return iter(self._calculated + self.extra_data)
@@ -67,6 +85,23 @@ class Configuration(collections.MutableMapping):
             self._calculated[key] = value
         else:
             self.extra_data[key] = value
+
+    def _decode_os_value(self, value):
+        '''Return the value of a dictionary based on its keys'''
+        if not (self.use_os_keys and isinstance(value, dict)):
+            return value
+
+        # If the value keys consist only of 'windows', 'linux', and 'mac'
+        os_keys = ['windows', 'linux', 'mac']
+        if not [v_key for v_key in value.keys() if v_key not in os_keys]:
+            if IS_WIN:
+                return value['windows']
+            elif IS_MAC:
+                return value['mac']
+            else:
+                return value['linux']
+
+        return value
 
     def _validate(self, yaml_data):
         '''
@@ -90,7 +125,7 @@ class Configuration(collections.MutableMapping):
 
     def load_configs(self):
         '''Find all of the config files and load them in'''
-        self._default = self.load_file(self.default_file)
+        self._default = self.loads(self._default_raw)
         self._calculated = copy.deepcopy(self._default)
 
         for fpath in self.user_files:
@@ -115,6 +150,17 @@ class Configuration(collections.MutableMapping):
             return data
 
         return None
+
+    def loads(self, yaml_string):
+        '''Load a configuration from a string'''
+        data = YAML().load(yaml_string) or {}
+
+        try:
+            self._validate(data)
+        except SchemaError:
+            raise
+
+        return data
 
     def dump(self, obj=None):
         '''

@@ -11,7 +11,7 @@ test_requirements = ['pytest']
 
 setup(
     name='yamiconfig',
-    version='0.1.0',
+    version='0.2.0',
     description="Yet another yaml-based settings package",
     long_description="Yet another yaml-based settings package",
     author="Timothy McFadden",

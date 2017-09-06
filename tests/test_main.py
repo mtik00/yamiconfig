@@ -78,8 +78,15 @@ test3: 4
 
 
 def test_exceptions():
-    with pytest.raises(TypeError):
+    with pytest.raises(ValueError):
         Configuration()
+
+
+def test_loads():
+    yaml_str = "test1: 2\ntest3: 4"
+    c = Configuration(default_yaml_text=yaml_str)
+    assert c['test1'] == 2
+    assert c['test3'] == 4
 
 
 def main():
