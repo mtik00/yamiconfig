@@ -63,7 +63,7 @@ class Configuration(collections.MutableMapping):
             self.schema = None
 
         self.use_os_keys = use_os_keys
-        self.extra_data = {}  # Settings not sure in a config file
+        self.extra_data = {}  # Settings not stored in a config file
 
         self.load_configs()
 
