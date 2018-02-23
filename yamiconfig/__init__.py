@@ -26,7 +26,7 @@ __version__ = '0.2.0'
 # This header will be written to the user config file during
 # ``Config.store_defaults``.
 USER_CONFIG_HEADER = (
-    '# This file contains the settings available for the user to override.  Simply'
+    '# This file contains the settings available for the user to override.  Simply\n'
     '# un-comment the setting (defaults are shown), and restart the application.\n'
 )
 
@@ -188,7 +188,11 @@ class Configuration(collections.MutableMapping):
 
     def store_defaults(self, fpath):
         '''Creates a new file with all default settings commented out'''
-        default_text_lines = open(self.default_file).readlines()
+        if self.default_file:
+            default_text_lines = open(self.default_file).readlines()
+        else:
+            default_text_lines = self._default_raw.split('\n')
+
         new_lines = [USER_CONFIG_HEADER]
 
         # Comment out all of the lines
