@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "yamiconfig"
-version = "0.1.0"
+version = "0.3.0"
 description = "Yet another application configuration library"
 authors = ["Tim McFadden <tim@timandjamie.com>"]
 
@@ -12,6 +12,7 @@ python = "^3.7"
 pytest = "^5.2"
 pylint = "^2.4.4"
 ipdb = "^0.12.3"
+mypy = "^0.761"
 
 [build-system]
 requires = ["poetry>=0.12"]
