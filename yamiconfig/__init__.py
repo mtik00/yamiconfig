@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+This module holds the interface for the Config object.
 
+This object is used for interacting with the application configuration.
+"""
 __version__ = "0.3.0"
 
 
@@ -16,11 +20,13 @@ DEBUG = False
 
 @dataclass
 class ConfigItem:
+    """A dataclass to describe a configuration stored in a file"""
     path: str
     data: dict
 
 
 def string_to_yaml(string_data):
+    """Converts a YAML string to a Python data structure"""
     return ruamel.yaml.load(string_data, ruamel.yaml.RoundTripLoader) or {}
 
 
@@ -32,25 +38,51 @@ def load_yaml_file(path: str):
 
         return None
 
-    with open(path) as fh:
-        yaml_data = fh.read()
+    with open(path) as file_object:
+        yaml_data = file_object.read()
 
-    return ConfigItem(
-            path=path,
-            data=string_to_yaml(yaml_data)
-        )
+    return ConfigItem(path=path, data=string_to_yaml(yaml_data))
+
+
+def get_setting(path: str, config: dict, strict: bool = False):
+    """
+    Get a setting from the dotted path in the
+
+    :param bool strict: Raise an exception if the path is not found.
+    """
+    method = "__getitem__" if strict else "get"
+    steps = path.split(".")
+
+    result = getattr(config, method)(steps[0])
+    if not result:
+        return result
+
+    for step in steps[1:]:
+        result = getattr(result, method)(step)
+        if not result:
+            return result
+
+    return result
 
 
 class Config:
+    """
+    This class can be used to interact with an application configuration.
+
+    The configuration files should be stored as YAML files.  The default folder
+    to look for is `~/.config/{app_name}`.
+
+    NOTE: You should call `init` before attempting to use the configuration.
+    """
     def __init__(
         self,
         app_name: str,
         default_strict: bool = False,
-        user_dirs: List[str] = ["./instance"],
+        user_dirs: List[str] = None,
     ):
         self.app_name = app_name
         self.default_strict = default_strict
-        self.user_dirs = user_dirs
+        self.user_dirs = user_dirs if user_dirs is not None else ["./instance"]
         self.default_folder = os.path.expanduser(f"~/.config/{app_name}")
         self.default_file = os.path.join(self.default_folder, "config.yaml")
         self.reload()
@@ -63,8 +95,8 @@ class Config:
         if not os.path.exists(self.default_folder):
             os.makedirs(self.default_folder)
 
-        with open(self.default_file, "w") as fh:
-            fh.write(default_yaml or "---")
+        with open(self.default_file, "w") as file_object:
+            file_object.write(default_yaml or "---")
 
     def reload(self):
         """Reloads the configuration from the file system."""
@@ -94,7 +126,7 @@ class Config:
         for config in self._configs:
             val = None
             try:
-                val = self._get(path, config.data, strict)
+                val = get_setting(path, config.data, strict)
             except KeyError:
                 missing_key = True
 
@@ -106,28 +138,9 @@ class Config:
         if missing_key:
             raise KeyError(f"Setting not found: {path}")
 
-    def _get(self, path: str, config: dict, strict: bool = False):
-        """
-        Get a setting from the dotted path in the
-
-        :param bool strict: Raise an exception if the path is not found.
-        """
-        method = "__getitem__" if strict else "get"
-        steps = path.split(".")
-
-        result = getattr(config, method)(steps[0])
-        if not result:
-            return result
-
-        for step in steps[1:]:
-            result = getattr(result, method)(step)
-            if not result:
-                return result
-
-        return result
+        return None
 
 
 if __name__ == "__main__":
-    # DEBUG = True
-    c = Config("yamiconfig-test", default_strict=True)
-    print(c.get("webx", strict=False))
+    app_config = Config("yamiconfig-test", default_strict=True)  # pylint: disable=invalid-name
+    print(app_config.get("webx", strict=False))

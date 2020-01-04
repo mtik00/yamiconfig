@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
+"""
+Pytest setup.
+"""
 import pytest
 import ruamel.yaml
 
@@ -35,6 +37,7 @@ web:
 
 @pytest.fixture
 def config(monkeypatch):
+    """A Config fixture with `strict=False`"""
 
     # We need our own loader so we can use our own YAML text.
     def mock_load(path: str):
@@ -46,13 +49,14 @@ def config(monkeypatch):
 
     monkeypatch.setattr(yamiconfig, "load_yaml_file", mock_load)
 
-    c = yamiconfig.Config("pytest-app", user_dirs=["/pytest"], default_strict=False)
+    app_config = yamiconfig.Config("pytest-app", user_dirs=["/pytest"], default_strict=False)
 
-    return c
+    return app_config
 
 
 @pytest.fixture
 def strict_config(monkeypatch):
+    """A Config fixture with `strict=True`"""
 
     # We need our own loader so we can use our own YAML text.
     def mock_load(path: str):
@@ -64,6 +68,6 @@ def strict_config(monkeypatch):
 
     monkeypatch.setattr(yamiconfig, "load_yaml_file", mock_load)
 
-    c = yamiconfig.Config("pytest-app", user_dirs=["/pytest"], default_strict=True)
+    app_config = yamiconfig.Config("pytest-app", user_dirs=["/pytest"], default_strict=True)
 
-    return c
+    return app_config

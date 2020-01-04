@@ -1,8 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from . import config, strict_config
+# pylint: disable=redefined-outer-name, unused-import, protected-access
+"""
+Tests for `strict`.
+"""
 
 from pytest import raises
+
+from . import config, strict_config
 
 
 def test_default(config):

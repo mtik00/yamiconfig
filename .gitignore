@@ -6,6 +6,7 @@
 !/poetry.lock
 !/pyproject.toml
 !/README.md
+!/.pylintrc
 
 # Ignore byte code
 __pycache__/
