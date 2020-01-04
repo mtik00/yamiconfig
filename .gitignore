@@ -7,6 +7,11 @@
 !/pyproject.toml
 !/README.md
 
+# Ignore byte code
+__pycache__/
+*.py[cod]
+*$py.class
+
 # Un-ignore all of subtree
 !/yamiconfig/
 !/tests/
