@@ -105,8 +105,15 @@ class Config:
     def __str__(self):
         return f"<Config app_name: {self.app_name}>"
 
-    def init(self, default_yaml: str = "---"):
-        """Writes the initial YAML file to the default location"""
+    def init(self, default_yaml: str = "---", force: bool = False):
+        """Writes the initial YAML file to the default location.
+
+        :param str default_yaml: The default YAML string to store
+        :param bool force: Force re-creating the config.
+        """
+        if os.path.exists(self.default_folder) and (not force):
+            raise Exception(f"Config folder {self.default_folder} already exists!")
+
         if not os.path.exists(self.default_folder):
             os.makedirs(self.default_folder)
 
@@ -158,7 +165,9 @@ class Config:
 
         return None
 
-    def set(self, path: str, value: Any, strict: bool = None) -> None:
+    def set(
+        self, path: str, value: Any, strict: bool = None, persist: bool = False
+    ) -> None:
         """
         Sets a value at the specified path.
 
@@ -174,6 +183,13 @@ class Config:
             self.get(path, strict=True)
 
         self._configs[0].data[path] = value
+
+        if persist:
+            yaml = ruamel.yaml.YAML()
+            default_config = self._configs[-1]
+            default_config.data[path] = value
+            with open(default_config.path, "w") as stream:
+                yaml.dump(default_config.data, stream)
 
 
 if __name__ == "__main__":
