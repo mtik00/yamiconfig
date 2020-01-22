@@ -11,7 +11,7 @@ __version__ = "0.3.0"
 import os
 from dataclasses import dataclass
 from functools import partial
-from typing import List
+from typing import Any, Dict, List, Optional, Union
 
 import ruamel.yaml
 
@@ -21,16 +21,17 @@ DEBUG = False
 @dataclass
 class ConfigItem:
     """A dataclass to describe a configuration stored in a file"""
+
     path: str
     data: dict
 
 
-def string_to_yaml(string_data):
+def string_to_yaml(string_data: str) -> Union[Any, Dict[Any, Any]]:
     """Converts a YAML string to a Python data structure"""
     return ruamel.yaml.load(string_data, ruamel.yaml.RoundTripLoader) or {}
 
 
-def load_yaml_file(path: str):
+def load_yaml_file(path: str) -> Optional[ConfigItem]:
     """Loads a YAML file and returns a ConfigItem if the path exists, None otherwise."""
     if not os.path.isfile(path):
         if DEBUG:
@@ -74,11 +75,9 @@ class Config:
 
     NOTE: You should call `init` before attempting to use the configuration.
     """
+
     def __init__(
-        self,
-        app_name: str,
-        default_strict: bool = False,
-        user_dirs: List[str] = None,
+        self, app_name: str, default_strict: bool = False, user_dirs: List[str] = None,
     ):
         self.app_name = app_name
         self.default_strict = default_strict
@@ -142,5 +141,7 @@ class Config:
 
 
 if __name__ == "__main__":
-    app_config = Config("yamiconfig-test", default_strict=True)  # pylint: disable=invalid-name
+    app_config = Config(
+        "yamiconfig-test", default_strict=True
+    )  # pylint: disable=invalid-name
     print(app_config.get("webx", strict=False))
