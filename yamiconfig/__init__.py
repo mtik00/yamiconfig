@@ -128,7 +128,9 @@ class Config:
             if system_dir is not None
             else os.path.expanduser(f"~/.config/{app_name}/{app_name}-config.yaml")
         )
-        self.system_file = os.path.abspath(os.path.join(self.system_dir, f"{app_name}-config.yaml"))
+        self.system_file = os.path.abspath(
+            os.path.join(self.system_dir, f"{app_name}-config.yaml")
+        )
         self.reload()
 
     def __str__(self):
@@ -194,9 +196,7 @@ class Config:
 
         return None
 
-    def set(
-        self, path: str, value: Any, strict: bool = None, persist: bool = False
-    ) -> None:
+    def set(self, path: str, value: Any, strict: bool = None) -> None:
         """
         Sets a value at the specified path.
 
@@ -212,13 +212,6 @@ class Config:
             self.get(path, strict=True)
 
         self._configs[0].data[path] = value
-
-        if persist:
-            yaml = ruamel.yaml.YAML()
-            default_config = self._configs[-1]
-            default_config.data[path] = value
-            with open(default_config.path, "w") as stream:
-                yaml.dump(default_config.data, stream)
 
 
 if __name__ == "__main__":
