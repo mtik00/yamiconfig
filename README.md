@@ -38,3 +38,20 @@ c = Config(app_name="my-app)
 ```
 
 This will attempt to load `~/.config/my-app/my-app-config.yaml`.
+
+### Development vs Production
+
+This configuration object is only meant to read semi-permanent configuration options.  That is, settings that won't change between different environments.  You should override any settings you need on your own.
+
+Example:
+```python
+import os
+
+from yamiconfig import Config
+c = Config(app_name="my-app")
+
+for key in [key for key in os.environ.keys() if key.startswith('MY_APP')]:
+    c.set(key, os.getenv(key))
+```
+
+You can then use the config object like you normally would, with any environment-specific settings.
