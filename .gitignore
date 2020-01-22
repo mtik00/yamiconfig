@@ -16,3 +16,4 @@ __pycache__/
 # Un-ignore all of subtree
 !/yamiconfig/
 !/tests/
+!/tasks/
