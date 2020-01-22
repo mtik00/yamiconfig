@@ -82,6 +82,27 @@ def get_setting(path: str, config: dict, strict: bool = False):
     return result
 
 
+def initialize_settings_file_from_yaml(
+    app_name: str, default_yaml: str, force: bool = False
+) -> None:
+    """
+    Initializes a new YAML settings file for the application.
+    """
+    Config(app_name=app_name).init(default_yaml=default_yaml, force=force)
+
+
+def initialize_settings_file_from_file(
+    app_name: str, path: str, force: bool = False
+) -> None:
+    """
+    Initializes a new YAML settings file for the application.
+    """
+    with open(path) as stream:
+        default_yaml = stream.read()
+
+    Config(app_name=app_name).init(default_yaml=default_yaml, force=force)
+
+
 class Config:
     """
     This class can be used to interact with an application configuration.
@@ -93,12 +114,20 @@ class Config:
     """
 
     def __init__(
-        self, app_name: str, default_strict: bool = False, user_dirs: List[str] = None,
+        self,
+        app_name: str,
+        default_strict: bool = False,
+        default_folder: str = None,
+        user_dirs: List[str] = None,
     ):
         self.app_name = app_name
         self.default_strict = default_strict
         self.user_dirs = user_dirs if user_dirs is not None else ["./instance"]
-        self.default_folder = os.path.expanduser(f"~/.config/{app_name}")
+        self.default_folder = (
+            default_folder
+            if default_folder is not None
+            else os.path.expanduser(f"~/.config/{app_name}")
+        )
         self.default_file = os.path.join(self.default_folder, "config.yaml")
         self.reload()
 
