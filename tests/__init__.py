@@ -19,6 +19,7 @@ test:
     - 2
   bool: true
   vars: "one, two, three"
+  null_item: null
 
 web:
   root: /var/www/html/public

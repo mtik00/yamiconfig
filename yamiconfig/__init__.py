@@ -126,6 +126,7 @@ class Config:
             val = None
             try:
                 val = get_setting(path, config.data, strict)
+                missing_key = False
             except KeyError:
                 missing_key = True
 
@@ -138,6 +139,18 @@ class Config:
             raise KeyError(f"Setting not found: {path}")
 
         return None
+
+    # def set(self, path: str, value: Any) -> None:
+
+
+def has_path(path: str, config: Config) -> bool:
+    """Returns True if the path is found in the config, False otherwise."""
+    try:
+        config.get(path, strict=True)
+    except KeyError:
+        return False
+
+    return True
 
 
 if __name__ == "__main__":
