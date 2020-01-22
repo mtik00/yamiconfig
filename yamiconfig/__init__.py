@@ -107,8 +107,8 @@ class Config:
     """
     This class can be used to interact with an application configuration.
 
-    The configuration files should be stored as YAML files.  The default folder
-    to look for is `~/.config/{app_name}`.
+    The configuration files should be stored as YAML files.  The default file
+    to load is `~/.config/{app_name}/{app_name}-config.yaml`.
 
     NOTE: You should call `init` before attempting to use the configuration.
     """
@@ -117,18 +117,18 @@ class Config:
         self,
         app_name: str,
         default_strict: bool = False,
-        default_folder: str = None,
-        user_dirs: List[str] = None,
+        system_dir: str = None,
+        search_dirs: List[str] = None,
     ):
         self.app_name = app_name
         self.default_strict = default_strict
-        self.user_dirs = user_dirs if user_dirs is not None else ["./instance"]
-        self.default_folder = (
-            default_folder
-            if default_folder is not None
-            else os.path.expanduser(f"~/.config/{app_name}")
+        self.search_dirs = search_dirs if search_dirs is not None else []
+        self.system_dir = (
+            system_dir
+            if system_dir is not None
+            else os.path.expanduser(f"~/.config/{app_name}/{app_name}-config.yaml")
         )
-        self.default_file = os.path.join(self.default_folder, "config.yaml")
+        self.system_file = os.path.abspath(os.path.join(self.system_dir, f"{app_name}-config.yaml"))
         self.reload()
 
     def __str__(self):
@@ -140,22 +140,22 @@ class Config:
         :param str default_yaml: The default YAML string to store
         :param bool force: Force re-creating the config.
         """
-        if os.path.exists(self.default_folder) and (not force):
-            raise Exception(f"Config folder {self.default_folder} already exists!")
+        if os.path.exists(self.system_dir) and (not force):
+            raise Exception(f"Config folder {self.system_dir} already exists!")
 
-        if not os.path.exists(self.default_folder):
-            os.makedirs(self.default_folder)
+        if not os.path.exists(self.system_dir):
+            os.makedirs(self.system_dir)
 
-        with open(self.default_file, "w") as file_object:
+        with open(self.system_file, "w") as file_object:
             file_object.write(default_yaml or "---")
 
     def reload(self):
         """Reloads the configuration from the file system."""
-        self._default_config = load_yaml_file(self.default_file)
-        self._configs = [self._default_config]
+        self._system_config = load_yaml_file(self.system_file)
+        self._configs = [self._system_config]
 
-        for user_dir in reversed(self.user_dirs):
-            config_file = os.path.join(user_dir, f"{self.app_name}.yaml")
+        for search_dir in reversed(self.search_dirs):
+            config_file = os.path.join(search_dir, f"{self.app_name}.yaml")
             self._configs.append(load_yaml_file(config_file))
 
         # This stores the list of configurations in reverse order.  The first

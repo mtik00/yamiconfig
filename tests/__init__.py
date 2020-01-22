@@ -50,7 +50,7 @@ def config(monkeypatch):
 
     monkeypatch.setattr(yamiconfig, "load_yaml_file", mock_load)
 
-    app_config = yamiconfig.Config("pytest-app", user_dirs=["/pytest"], default_strict=False)
+    app_config = yamiconfig.Config("pytest-app", search_dirs=["/pytest"], default_strict=False)
 
     return app_config
 
@@ -69,6 +69,6 @@ def strict_config(monkeypatch):
 
     monkeypatch.setattr(yamiconfig, "load_yaml_file", mock_load)
 
-    app_config = yamiconfig.Config("pytest-app", user_dirs=["/pytest"], default_strict=True)
+    app_config = yamiconfig.Config("pytest-app", search_dirs=["/pytest"], default_strict=True)
 
     return app_config
