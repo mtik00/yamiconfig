@@ -10,7 +10,7 @@ from . import config
 
 def test_default(config):
     """Test default config YAML"""
-    assert len(config._configs) == 2
+    assert len(config._configs) == 3
     assert config.get("test.bool")
 
 

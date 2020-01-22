@@ -25,6 +25,16 @@ class ConfigItem:
     path: str
     data: dict
 
+    def get(self, path: str) -> Any:
+        """
+        Get a setting from the dotted path.
+
+        Raises `KeyError` if any part of the path is not found.
+
+        :param bool strict: Raise an exception if the path is not found.
+        """
+        return get_setting(path, self.data, strict=True)
+
 
 def string_to_yaml(string_data: str) -> Union[Any, Dict[Any, Any]]:
     """Converts a YAML string to a Python data structure"""
@@ -47,7 +57,7 @@ def load_yaml_file(path: str) -> Optional[ConfigItem]:
 
 def get_setting(path: str, config: dict, strict: bool = False):
     """
-    Get a setting from the dotted path in the
+    Get a setting from the dotted path in the dictionary.
 
     :param bool strict: Raise an exception if the path is not found.
     """
@@ -114,47 +124,39 @@ class Config:
         if DEBUG and (not self._configs):
             print("WARNING: No config files found")
 
-    def get(self, path: str, strict: bool = None):
+        # Finally, add an overlay config to store dynamic settings.
+        self._configs = [
+            ConfigItem(path="overlay", data=string_to_yaml("---"))
+        ] + self._configs
+
+    def get(self, path: str, strict: bool = None) -> Any:
         """
         Get a setting from the dotted path.
 
         :param bool strict: Raise an exception if the path is not found.
         """
         strict = strict if strict is not None else self.default_strict
-        missing_key = False
+
         for config in self._configs:
-            val = None
             try:
-                val = get_setting(path, config.data, strict)
+                val = config.get(path)
                 missing_key = False
             except KeyError:
                 missing_key = True
 
-            if val:
+            if (not missing_key) and (val is not None):
                 if DEBUG:
                     print(f"setting '{path}' found in: {config.path}")
                 return val
 
-        if missing_key:
-            raise KeyError(f"Setting not found: {path}")
+        if missing_key and strict:
+            raise KeyError(f"Path not found: '{path}'")
 
         return None
 
-    # def set(self, path: str, value: Any) -> None:
-
-
-def has_path(path: str, config: Config) -> bool:
-    """Returns True if the path is found in the config, False otherwise."""
-    try:
-        config.get(path, strict=True)
-    except KeyError:
-        return False
-
-    return True
-
 
 if __name__ == "__main__":
-    app_config = Config(
+    app_config = Config(  # pylint: disable=invalid-name
         "yamiconfig-test", default_strict=True
-    )  # pylint: disable=invalid-name
+    )
     print(app_config.get("webx", strict=False))
