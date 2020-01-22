@@ -64,6 +64,12 @@ def get_setting(path: str, config: dict, strict: bool = False):
     method = "__getitem__" if strict else "get"
     steps = path.split(".")
 
+    # Do we have the _raw_ path, like {'a.b.c.d': 4}?
+    try:
+        return config[path]
+    except KeyError:
+        pass
+
     result = getattr(config, method)(steps[0])
     if not result:
         return result
@@ -124,10 +130,8 @@ class Config:
         if DEBUG and (not self._configs):
             print("WARNING: No config files found")
 
-        # Finally, add an overlay config to store dynamic settings.
-        self._configs = [
-            ConfigItem(path="overlay", data=string_to_yaml("---"))
-        ] + self._configs
+        # Finally, add an override config to store dynamic settings.
+        self._configs = [ConfigItem(path="override", data={})] + self._configs
 
     def get(self, path: str, strict: bool = None) -> Any:
         """
@@ -153,6 +157,23 @@ class Config:
             raise KeyError(f"Path not found: '{path}'")
 
         return None
+
+    def set(self, path: str, value: Any, strict: bool = None) -> None:
+        """
+        Sets a value at the specified path.
+
+        There's no real benefit of dealing with the complexity of nested
+        structures.  Just use the raw path to set the value in the
+        override config.
+        """
+        strict = strict if strict is not None else self.default_strict
+
+        # If we're strict, raise an Exception if we don't already have
+        # this setting in our config.
+        if strict:
+            self.get(path, strict=True)
+
+        self._configs[0].data[path] = value
 
 
 if __name__ == "__main__":
